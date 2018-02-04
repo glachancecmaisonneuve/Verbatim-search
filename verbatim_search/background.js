@@ -1,4 +1,4 @@
-localStorage['verbatim-status'] = 'on';
+localStorage['verbatim-status'] = localStorage.getItem('verbatim-status') || 'on';
 
 //var reg=/\/\/www\.google.*(&|\?)q=([^&]+)/
 //var reg=/\/\/www\.google\.[^/]+/(search/)?[^/&\?]*(&|\?)q=([^&\n]+)/
