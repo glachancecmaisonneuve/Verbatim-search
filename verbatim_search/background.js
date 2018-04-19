@@ -16,13 +16,13 @@ else {
 // var regmaps = /(\/maps\/)|(\/search\?tbm=map)/;
 
 function SetSwitchOn() {
-    chrome.browserAction.setIcon({ 'path': 'on.png' });
+    chrome.browserAction.setIcon({ 'path': 'icon-a-19.png' });
     chrome.browserAction.setTitle({ 'title': 'Click to deactivate verbatim search' });
     localStorage['verbatim-status'] = 'on';
 }
 
 function SetSwitchOff() {
-    chrome.browserAction.setIcon({ 'path': 'off.png' });
+    chrome.browserAction.setIcon({ 'path': 'icon-b-19.png' });
     chrome.browserAction.setTitle({ 'title': 'Click to activate verbatim search' });
     localStorage['verbatim-status'] = 'off';
 }
