@@ -1,23 +1,27 @@
-localStorage['verbatim-status'] = 'on';
+localStorage['verbatim-status'] = localStorage.getItem('verbatim-status') || 'on';
+if (localStorage['verbatim-status'] == 'on') {
+  SetSwitchOn();
+} else {
+  SetSwitchOff();
+}
 
-//var reg=/\/\/www\.google.*(&|\?)q=([^&]+)/
-//var reg=/\/\/www\.google\.[^/]+/(search/)?[^/&\?]*(&|\?)q=([^&\n]+)/
-var reg=/:\/\/www\.google\.[^\/]+\/(search\/)?[^\/]+(?=\q\=)q=([^&\n]+)/;
-var reg2=/(&tbs=li:1)/;
-var reg3=/(fp=[^&]+&)/;
-var reg4=/(tch=1&)/;
-var reg5=/(\/s\?)/;
-var regmaps=/(\/maps\/)|(\/search\?tbm=map)/;
+function SetSwitchOn() {
+  chrome.browserAction.setIcon({ 'path': 'icon-a-19.png' });
+  chrome.browserAction.setTitle({ 'title': 'Click to deactivate verbatim search' });
+  localStorage[ 'verbatim-status' ] = 'on';
+}
+
+function SetSwitchOff() {
+  chrome.browserAction.setIcon({ 'path': 'icon-b-19.png' });
+  chrome.browserAction.setTitle({ 'title': 'Click to activate verbatim search' });
+  localStorage[ 'verbatim-status' ] = 'off';
+}
 
 function switchOnOff() {
   if (localStorage['verbatim-status'] == 'on') {
-    chrome.browserAction.setIcon({'path': 'icon-b-19.png'});
-    chrome.browserAction.setTitle({'title': 'Click to activate verbatim search'});
-    localStorage['verbatim-status'] = 'off';
+    SetSwitchOff();
   } else {
-    chrome.browserAction.setIcon({'path': 'icon-a-19.png'});
-    chrome.browserAction.setTitle({'title': 'Click to deactivate verbatim search'});
-    localStorage['verbatim-status'] = 'on';
+    SetSwitchOn();
   }
 }
 
@@ -25,27 +29,16 @@ function checkForValidUrl(details) {
   if (localStorage['verbatim-status'] == 'off') {
     return;
   }
-  // console.log(details.url);
-  if (reg.test(details.url) && (reg2.test(details.url) === false) && (regmaps.test(details.url) === false)) {
-    // console.log('return 1 MODIFIED');
-    return {redirectUrl: details.url+'&tbs=li:1'};
-  } else {
-    // console.log('return 1 nomodif');
-    return;
-  }
-}
-
-function checkForValidUrlXml(details) {
-  if (localStorage['verbatim-status'] == 'off') {
-    return;
-  }
-  // console.log(details.url);
-  if (reg.test(details.url) && (reg5.test(details.url) === false) && (reg2.test(details.url) === false) && (regmaps.test(details.url) === false)) {
-    // console.log('return 2 MODIFIED');
-    return {redirectUrl: details.url.replace(reg3, '').replace(reg4, '')+'&tbs=li:1'};
-  } else {
-    // console.log('return 2 nomodif');
-    return;
+  let parsedURL = new URL(details.url);
+  //pathname /search is true for general search and specialized searches
+  if (parsedURL.pathname.startsWith('/search') &&
+    //specialized searches have a tbm parameter
+    parsedURL.searchParams.get("tbm") == null &&
+    //don't add tb1 if it's already there
+    parsedURL.searchParams.get("tbs") != "li:1")
+  {
+    parsedURL.searchParams.append('tbs', 'li:1');
+    return { redirectUrl: parsedURL.toString() };
   }
 }
 
@@ -56,4 +49,4 @@ chrome.browserAction.onClicked.addListener(switchOnOff);
 
 chrome.webRequest.onBeforeRequest.addListener(checkForValidUrl, {urls: urllist, types: ["main_frame"]}, ['blocking']);
 
-chrome.webRequest.onBeforeRequest.addListener(checkForValidUrlXml, {urls: urllist, types: ["xmlhttprequest"]}, ['blocking']);
+chrome.webRequest.onBeforeRequest.addListener(checkForValidUrl, {urls: urllist, types: ["xmlhttprequest"]}, ['blocking']);
